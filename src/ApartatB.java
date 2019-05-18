@@ -1,10 +1,11 @@
 import org.knowm.xchart.SwingWrapper;
 import org.knowm.xchart.XYChart;
 import org.knowm.xchart.XYChartBuilder;
+import org.knowm.xchart.style.XYStyler;
 
 import java.util.Scanner;
 
-public class ApartatB {
+class ApartatB {
     private final double indexFibra = 1.47;
     private int regio = 0;
     private int nreg;
@@ -13,10 +14,11 @@ public class ApartatB {
     private double posX;
     private double posY;
     private int alpha;
+    private int pointsxU;
 
     ApartatB() {}
 
-    public void main() throws Exception {
+    void main() throws Exception {
         Scanner reader = new Scanner(System.in);
         System.out.print("Enter Natural Number of Regions: ");
         nreg = reader.nextInt();
@@ -26,6 +28,12 @@ public class ApartatB {
         angle = reader.nextDouble();
         System.out.print("Set alpha(Natural Number): ");
         alpha = reader.nextInt();
+        System.out.print("Selecciona el mode (0,1): ");
+        int mode = reader.nextInt();
+        if (mode == 0) {
+            System.out.print("How much points/update(Natural Number): ");
+            pointsxU = reader.nextInt();
+        }
         reader.close();
         if (angle > 90 || angle < 0) throw new Exception("input error angle");
 
@@ -39,42 +47,81 @@ public class ApartatB {
         double[][] initdata = new double[][] {{-1, 0}, {posY-Math.tan(angle), posY}};
         XYChart chart2 = new XYChartBuilder().width(1300).height(600).xAxisTitle("length").yAxisTitle("Regió").title("Comportament raig llum FO GRIN").build();
         // Show it
+        XYStyler styler = chart2.getStyler();
+        styler.setYAxisMax((double) nreg);
+        styler.setYAxisMin(0.0);
         chart2.addSeries("raig llum", initdata[0], initdata[1]);
         final SwingWrapper<XYChart> sw = new SwingWrapper<>(chart2);
         sw.displayChart();
 
-        while (true) {
-            Thread.sleep(3000);
-            double[][] data = getData();
-            chart2.updateXYSeries("raig llum", data[0], data[1], null);
-            sw.repaintChart();
-            for (double[] da : data) {
-                for (double d : da) {
-                    System.out.print(d + " ");
+
+        if (mode == 0) {
+            while (true) {
+                Thread.sleep(2000);
+                double[][] data = getData(mode);
+                chart2.updateXYSeries("raig llum", data[0], data[1], null);
+                sw.repaintChart();
+                for (double[] da : data) {
+                    for (double d : da) {
+                        System.out.print(d + " ");
+                    }
+                    System.out.println();
                 }
-                System.out.println();
+            }
+        }
+        else {
+            double xmin = 0;
+
+            Thread.sleep(2000);
+            double[][] data = getData(mode);
+            chart2.updateXYSeries("raig llum", data[0], data[1], null);
+            while (true) {
+                Thread.sleep(2000);
+                styler.setXAxisMax(xmin + nreg);
+                styler.setXAxisMin(xmin);
+                xmin += nreg;
+                sw.repaintChart();
             }
         }
     }
 
-    private double[][] getData() {
-
-        double[] xData = new double[20];
-        double[] yData = new double[20];
+    private double[][] getData(int mode) {
+        double[] xData;
+        double[] yData;
+        if (mode == 0) {
+            xData = new double[pointsxU];
+            yData = new double[pointsxU];
+        }
+        else {
+            xData = new double[10000];
+            yData = new double[10000];
+        }
 
         for (int i = 0; i < xData.length; ++i) {
-            double indexActualRegio;
+            double indexActualRegio = calculIndexRegio(regio, nreg / 2, alpha);
             if (up) {
+                Double snell = snell(indexActualRegio, angleF, calculIndexRegio(regio + 1, nreg / 2, 1));
+                Double angleC = angleCritic(indexActualRegio, calculIndexRegio(regio + 1, nreg / 2, 1));
+                System.out.println("snellu = " + snell);
+                System.out.println("criticu = " + angleC);
+                if (angleC < snell) up = !up;
+                else angleF = snell;
                 if (posY+1 != nreg) upThings(xData, yData, i);
                 else {
-                    up = !up;
+                    up = false;
                     downThings(xData, yData, i);
                 }
             }
             else {
+                Double snell = snell(indexActualRegio, angleF, calculIndexRegio(regio - 1, nreg / 2, alpha));
+                System.out.println("snelld = " + snell);
+                Double angleC = angleCritic(indexActualRegio, calculIndexRegio(regio - 1, nreg / 2, alpha));
+                System.out.println("criticd = " + angleC);
+                if (angleC < snell) up = !up;
+                else angleF = snell;
                 if (posY-1 != -1) downThings(xData, yData, i);
                 else {
-                    up = !up;
+                    up = true;
                     upThings(xData, yData, i);
                 }
             }
@@ -88,13 +135,7 @@ public class ApartatB {
         regio--;
         posY--;
         posX = posX + (Math.tan(Math.PI * angleF / 180));
-        double indexActualRegio = calculIndexRegio(regio, nreg / 2, alpha);
-        Double snell = snell(indexActualRegio, angleF, calculIndexRegio(regio - 1, nreg / 2, alpha));
-        System.out.println("snelld = " + snell);
-        Double angleC = angleCritic(indexActualRegio, calculIndexRegio(regio - 1, nreg / 2, alpha));
-        System.out.println("criticd = " + angleC);
-        if (angleC < snell) up = !up;
-        else angleF = snell;
+
     }
 
     private void upThings(double[] xData, double[] yData, int i) {
@@ -103,13 +144,6 @@ public class ApartatB {
         regio++;
         posY++;
         posX = posX + (Math.tan(Math.PI * angleF / 180));
-        double indexActualRegio = calculIndexRegio(regio, nreg / 2, 1);
-        Double snell = snell(indexActualRegio, angleF, calculIndexRegio(regio + 1, nreg / 2, 1));
-        Double angleC = angleCritic(indexActualRegio, calculIndexRegio(regio - 1, nreg / 2, 1));
-        System.out.println("snellu = " + snell);
-        System.out.println("criticu = " + angleC);
-        if (angleC < snell) up = !up;
-        else angleF = snell;
     }
 
     private double calculIndexRegio(double r, double a, int alfa) {
