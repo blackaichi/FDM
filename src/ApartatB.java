@@ -1,8 +1,9 @@
 import org.knowm.xchart.SwingWrapper;
 import org.knowm.xchart.XYChart;
 import org.knowm.xchart.XYChartBuilder;
+import org.knowm.xchart.XYSeries;
 import org.knowm.xchart.style.XYStyler;
-
+import org.knowm.xchart.style.colors.XChartSeriesColors;
 import java.util.Scanner;
 
 class ApartatB {
@@ -22,7 +23,7 @@ class ApartatB {
         Scanner reader = new Scanner(System.in);
         System.out.print("Enter Natural Number of Regions: ");
         nreg = reader.nextInt();
-        //if (nreg > 50 || nreg < 20) throw new Exception("input error number of regions");
+        if (nreg > 50 || nreg < 20) throw new Exception("input error number of regions");
         double angle;
         System.out.print("Set initial angle (sexagesimal from 0 to 90): ");
         angle = reader.nextDouble();
@@ -42,45 +43,55 @@ class ApartatB {
         double indexAire = 1;
         angle = snell(indexAire, angle, indexFibra);
         angleF = 90-angle;
-        System.out.println(angleF);
+        //System.out.println(angleF);
 
-        double[][] initdata = new double[][] {{-1, 0}, {posY-Math.tan(angle), posY}};
+        double[][] initdata = new double[][] {{-2, 0, Math.tan(Math.PI * angleF / 180)}, {posY-2*Math.tan(angle), posY, posY+1}};
         XYChart chart2 = new XYChartBuilder().width(1300).height(600).xAxisTitle("length").yAxisTitle("Regió").title("Comportament raig llum FO GRIN").build();
         // Show it
         XYStyler styler = chart2.getStyler();
         styler.setYAxisMax((double) nreg);
         styler.setYAxisMin(0.0);
         chart2.addSeries("raig llum", initdata[0], initdata[1]);
+
+        XYSeries series = chart2.addSeries("entrada fibra", new double[]{0, 0}, new double[]{50, 0});
+        series.setLineColor(XChartSeriesColors.RED);
+
+        double[] superior = new double[] {(double) nreg, (double) nreg};
+        double[] inferior = new double[] {0.0, 0.0};
+        double[] contador = new double[] {-100.0,100000.0};
+
+        XYSeries series2 = chart2.addSeries("recobriment superior", contador, superior);
+        series2.setLineColor(XChartSeriesColors.BLACK);
+        XYSeries series3 = chart2.addSeries("recobriment inferior", contador, inferior);
+        series3.setLineColor(XChartSeriesColors.BLACK);
+
+        styler.setXAxisMin(-5.0);
+        styler.setXAxisMax(10.0);
+
         final SwingWrapper<XYChart> sw = new SwingWrapper<>(chart2);
         sw.displayChart();
-
-
+        Thread.sleep(2000);
         if (mode == 0) {
             while (true) {
                 Thread.sleep(2000);
                 double[][] data = getData(mode);
+                styler.setXAxisMin(data[0][0]);
+                styler.setXAxisMax(data[0][pointsxU-1]);
                 chart2.updateXYSeries("raig llum", data[0], data[1], null);
                 sw.repaintChart();
-                for (double[] da : data) {
-                    for (double d : da) {
-                        System.out.print(d + " ");
-                    }
-                    System.out.println();
-                }
             }
         }
         else {
             double xmin = 0;
-
-            Thread.sleep(2000);
             double[][] data = getData(mode);
+            System.out.println(data[0].length);
             chart2.updateXYSeries("raig llum", data[0], data[1], null);
             while (true) {
                 Thread.sleep(2000);
-                styler.setXAxisMax(xmin + nreg);
                 styler.setXAxisMin(xmin);
-                xmin += nreg;
+                styler.setXAxisMax(xmin+nreg);
                 sw.repaintChart();
+                xmin += nreg/2;
             }
         }
     }
@@ -93,20 +104,20 @@ class ApartatB {
             yData = new double[pointsxU];
         }
         else {
-            xData = new double[10000];
-            yData = new double[10000];
+            xData = new double[100000];
+            yData = new double[100000];
         }
 
         for (int i = 0; i < xData.length; ++i) {
             double indexActualRegio = calculIndexRegio(regio, nreg / 2, alpha);
             if (up) {
-                Double snell = snell(indexActualRegio, angleF, calculIndexRegio(regio + 1, nreg / 2, 1));
-                Double angleC = angleCritic(indexActualRegio, calculIndexRegio(regio + 1, nreg / 2, 1));
-                System.out.println("snellu = " + snell);
-                System.out.println("criticu = " + angleC);
+                Double snell = snell(indexActualRegio, angleF, calculIndexRegio(regio + 1, nreg / 2, alpha));
+                Double angleC = angleCritic(indexActualRegio, calculIndexRegio(regio + 1, nreg / 2, alpha));
+                //System.out.println("snellu = " + snell);
+                //System.out.println("criticu = " + angleC);
                 if (angleC < snell) up = !up;
                 else angleF = snell;
-                if (posY+1 != nreg) upThings(xData, yData, i);
+                if (posY != nreg) upThings(xData, yData, i);
                 else {
                     up = false;
                     downThings(xData, yData, i);
@@ -114,12 +125,12 @@ class ApartatB {
             }
             else {
                 Double snell = snell(indexActualRegio, angleF, calculIndexRegio(regio - 1, nreg / 2, alpha));
-                System.out.println("snelld = " + snell);
                 Double angleC = angleCritic(indexActualRegio, calculIndexRegio(regio - 1, nreg / 2, alpha));
-                System.out.println("criticd = " + angleC);
+                //System.out.println("snelld = " + snell);
+                //System.out.println("criticd = " + angleC);
                 if (angleC < snell) up = !up;
                 else angleF = snell;
-                if (posY-1 != -1) downThings(xData, yData, i);
+                if (posY != 0) downThings(xData, yData, i);
                 else {
                     up = true;
                     upThings(xData, yData, i);
@@ -148,11 +159,11 @@ class ApartatB {
 
     private double calculIndexRegio(double r, double a, int alfa) {
         double delta = 0.01;
-        return indexFibra*Math.sqrt(1-2* delta *Math.pow((Math.abs(r)/a),alfa));
+        return indexFibra*Math.sqrt(1-2*delta*Math.pow((Math.abs(r)/a),alfa));
     }
 
     private double snell(double n1, double angleIncident, double n2) {
-        System.out.println("n1 = " + n1 + ", angI = " + angleIncident + ", n2 = " + n2);
+        //System.out.println("n1 = " + n1 + ", angI = " + angleIncident + ", n2 = " + n2);
         return Math.asin(n1*Math.sin(Math.PI*angleIncident/180)/n2)*180/Math.PI;
     }
 
