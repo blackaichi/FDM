@@ -176,7 +176,6 @@ public class ApartatA {
         newdist += Nreg;
         //System.out.print("New distance: " << newdist << endl;
         if (newdist <= dist) {
-            print_board(v, Nreg);
             if (newdist == Nreg+Math.abs(v[0]-v[Nreg-1])) return true;
         }
         else {
@@ -194,7 +193,7 @@ public class ApartatA {
 
     }*/
 
-    void main(){
+    void main() throws InterruptedException {
         System.out.print("Enter a natural number of regions: ");
         int Nreg = -1;
         Scanner reader = new Scanner(System.in);
@@ -221,7 +220,26 @@ public class ApartatA {
             v = recalculate_path(v, Nreg, env1, env2);
         }
         else{
-            while (!try_random_y(v, Nreg));
+            double[] x = new double[Nreg];
+            int i = 0;
+            while (i < Nreg) {
+                x[i] = (double)i;
+                ++i;
+            }
+            XYChart chart = new XYChartBuilder().width(1600).height(1000).xAxisTitle("Regió").yAxisTitle("Posició de penetració").title("Comportament llum a través de N regions").build();
+            XYStyler styler = chart.getStyler();
+            styler.setXAxisMax((double)Nreg-1);
+            styler.setYAxisMax((double)Nreg);
+            styler.setYAxisMin(0.0);
+            chart.addSeries("raig llum", x, v);
+            final SwingWrapper<XYChart> sw;
+            sw = new SwingWrapper<>(chart);
+            sw.displayChart();
+            while (!try_random_y(v, Nreg)){
+                Thread.sleep(10);
+                chart.updateXYSeries("raig llum", x, v, null);
+                sw.repaintChart();
+            };
             //prettyize(v, Nreg);
         }
 
