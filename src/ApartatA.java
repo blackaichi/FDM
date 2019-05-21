@@ -33,9 +33,17 @@ public class ApartatA {
         styler.setYAxisMax((double)Nreg);
         styler.setYAxisMin(0.0);
         chart.addSeries("raig llum", x, y);
-        /*y = new double[] {xx*x[0]+yy,xx*x[1]+yy,xx*x[2]+yy,xx*x[3]+yy,xx*x[4]+yy,xx*x[5]+yy,xx*x[6]+yy,xx*x[7]+yy,xx*x[8]+yy,xx*x[9]+yy};
-        XYSeries series2 = chart.addSeries("LR", x, y);
+        /*
+        double regr[] = new double[Nreg];
+        i = 0;
+        while (i < Nreg) {
+            regr[i] = xx*x[i]+yy;
+            ++i;
+        }
+        //y = new double[] {xx*x[0]+yy,xx*x[1]+yy,xx*x[2]+yy,xx*x[3]+yy,xx*x[4]+yy,xx*x[5]+yy,xx*x[6]+yy,xx*x[7]+yy,xx*x[8]+yy,xx*x[9]+yy};
+        XYSeries series2 = chart.addSeries("LR", x, regr);
         series2.setLineColor(XChartSeriesColors.YELLOW);*/
+
 
         i = 0;
         while (i < Nreg) {
@@ -86,8 +94,8 @@ public class ApartatA {
     }
 
     double snell(int m1, int m2, double envi1, double envi2) {
-        double ca = 6;
-        double co = (Math.abs(m1-m2))*1.9;
+        double ca = 1.6;
+        double co = (Math.abs(m1-m2));
         double angleinc = Math.atan(co/ca) * 180 / Math.PI;
         System.out.println("The angle of incidence is: " + angleinc);
         double anglerefr = Math.sin(angleinc*Math.PI/180);
@@ -107,9 +115,9 @@ public class ApartatA {
         return anglerefr;
     }
 
-    double src_to_dtct_angle(int m1, int m2, int Nreg){
-        double ca = 7*(Nreg-1);
-        double co = (Math.abs(m1-m2))*1.9;
+    double src_to_dtct_angle(double m1, double m2, int Nreg){
+        double ca = 1.6*(Nreg-1);
+        double co = (Math.abs(m1-m2));
         double angleinc = Math.atan(co/ca) * 180 / Math.PI;
         System.out.println("The angle of incidence from Source to Detector is: " + angleinc);
         return angleinc;
@@ -131,13 +139,13 @@ public class ApartatA {
     }
 
     private double[] recalculate_path(double[] v, int Nreg, double envi1, double envi2){
-        double angleinc = src_to_dtct_angle((int)v[0], (int)v[Nreg-1], Nreg);
+        double angleinc = src_to_dtct_angle(v[0], v[Nreg-1], Nreg);
         double anglerefr = angleinc;
         for (int i = 0; i < Nreg; ++i) {
             if (i == Nreg/2-1) anglerefr = snell_with_incident_angle(angleinc, envi1, envi2);
-            if (i == Nreg/2) anglerefr = src_to_dtct_angle((int)v[Nreg/2], (int)v[Nreg-1], Nreg/2);
-            if (i+1 < Nreg) {
-                double newvalue = (6*(Math.tan(anglerefr*Math.PI/180))/1.9);
+            if (i == Nreg/2) anglerefr = src_to_dtct_angle(v[Nreg/2], v[Nreg-1], Nreg/2);
+            if (i+1 < Nreg-1) {
+                double newvalue = (1.6*(Math.tan(anglerefr*Math.PI/180)));
                 System.out.println("AUGMENT O DISMINUCIó DE " + newvalue);
                 if (v[0] < v[Nreg-1]) v[i+1] = v[i] + newvalue;
                 else v[i+1] = v[i] - newvalue;
