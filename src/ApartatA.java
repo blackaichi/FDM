@@ -22,10 +22,10 @@ public class ApartatA {
             x[i] = (double)i;
             ++i;
         }
-        LinearRegression lr = new LinearRegression(x,y);
+        /*LinearRegression lr = new LinearRegression(x,y);
         System.out.println(lr.toString());
         double xx = lr.slope();
-        double yy = lr.intercept();
+        double yy = lr.intercept();*/
 
         XYChart chart = new XYChartBuilder().width(1600).height(1000).xAxisTitle("Regió").yAxisTitle("Posició de penetració").title("Comportament llum a través de N regions").build();
         XYStyler styler = chart.getStyler();

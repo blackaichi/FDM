@@ -4,6 +4,7 @@ import org.knowm.xchart.XYChartBuilder;
 import org.knowm.xchart.XYSeries;
 import org.knowm.xchart.style.XYStyler;
 import org.knowm.xchart.style.colors.XChartSeriesColors;
+
 import java.util.Scanner;
 
 class ApartatB {
@@ -21,7 +22,7 @@ class ApartatB {
 
     void main() throws Exception {
         Scanner reader = new Scanner(System.in);
-        System.out.print("Enter Natural Number of Regions: ");
+        System.out.print("Enter Natural Number of Regions (from 20 to 50): ");
         nreg = reader.nextInt();
         if (nreg > 50 || nreg < 20) throw new Exception("input error number of regions");
         double angle;
@@ -70,10 +71,10 @@ class ApartatB {
 
         final SwingWrapper<XYChart> sw = new SwingWrapper<>(chart2);
         sw.displayChart();
-        Thread.sleep(2000);
+        Thread.sleep(1000);
         if (mode == 0) {
-            while (true) {
-                Thread.sleep(2000);
+            for (int i = 0; i < 50; ++i) {
+                Thread.sleep(5000);
                 double[][] data = getData(mode);
                 styler.setXAxisMin(data[0][0]);
                 styler.setXAxisMax(data[0][pointsxU-1]);
@@ -84,9 +85,10 @@ class ApartatB {
         else {
             double xmin = 0;
             double[][] data = getData(mode);
-            System.out.println(data[0].length);
+            //System.out.println(data[0].length);
             chart2.updateXYSeries("raig llum", data[0], data[1], null);
-            while (true) {
+            Thread.sleep(1000);
+            for (int i = 0; i < 50; ++i) {
                 Thread.sleep(2000);
                 styler.setXAxisMin(xmin);
                 styler.setXAxisMax(xmin+nreg);
