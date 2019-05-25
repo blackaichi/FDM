@@ -9,6 +9,10 @@ import java.util.Scanner;
 
 public class ApartatA {
 
+    XYChart chart = new XYChartBuilder().width(1600).height(1000).xAxisTitle("Regió").yAxisTitle("Posició de penetració").title("Comportament llum a través de N regions").build();
+    XYStyler styler = chart.getStyler();
+    SwingWrapper<XYChart> sw;
+
     double generate_random_number(int min, int max) {
         double res = (Math.random() * ((max - min) + 1)) + min;  //min + static_cast <int> (rand()) /( static_cast <int> (RAND_MAX/(max-min)));
         return res;
@@ -22,11 +26,12 @@ public class ApartatA {
             x[i] = (double)i;
             ++i;
         }
-        /*LinearRegression lr = new LinearRegression(x,y);
+        /*
+        LinearRegression lr = new LinearRegression(x,y);
         System.out.println(lr.toString());
         double xx = lr.slope();
-        double yy = lr.intercept();*/
-
+        double yy = lr.intercept();
+         */
         XYChart chart = new XYChartBuilder().width(1600).height(1000).xAxisTitle("Regió").yAxisTitle("Posició de penetració").title("Comportament llum a través de N regions").build();
         XYStyler styler = chart.getStyler();
         styler.setXAxisMax((double)Nreg-1);
@@ -47,11 +52,10 @@ public class ApartatA {
 
         i = 0;
         while (i < Nreg) {
-            XYSeries series = chart.addSeries("Regió " + Integer.toString(i), new double[]{i, i}, new double[]{0,Nreg});
+            XYSeries series = chart.addSeries("Regió " + Integer.toString(i), new double[]{i, i}, new double[]{0, Nreg});
             series.setLineColor(XChartSeriesColors.RED);
             i++;
         }
-        final SwingWrapper<XYChart> sw;
         sw = new SwingWrapper<>(chart);
         sw.displayChart();
     }
@@ -138,10 +142,31 @@ public class ApartatA {
         return v;
     }
 
-    private double[] recalculate_path(double[] v, int Nreg, double envi1, double envi2){
+    private double[] recalculate_path(double[] v, int Nreg, double envi1, double envi2) throws InterruptedException {
+        double[] x = new double[Nreg];
+        int i = 0;
+        while (i < Nreg) {
+            x[i] = (double)i;
+            ++i;
+        }
         double angleinc = src_to_dtct_angle(v[0], v[Nreg-1], Nreg);
         double anglerefr = angleinc;
-        for (int i = 0; i < Nreg; ++i) {
+        styler.setXAxisMax((double)Nreg-1);
+        styler.setYAxisMax((double)Nreg);
+        styler.setYAxisMin(0.0);
+        chart.addSeries("raig llum", x, v);
+        chart.addSeries("raig teòric", new double[]{0,Nreg-1}, new double[]{v[0], v[Nreg-1]});
+        i = 0;
+        while (i < Nreg) {
+            XYSeries series = chart.addSeries("Regió " + Integer.toString(i), new double[]{i, i}, new double[]{0,Nreg});
+            if (i < Nreg/2) series.setLineColor(XChartSeriesColors.RED);
+            else series.setLineColor(XChartSeriesColors.GREEN);
+            i++;
+        }
+        sw = new SwingWrapper<>(chart);
+        sw.displayChart();
+        for (i = 0; i < Nreg; ++i) {
+            Thread.sleep(1000);
             if (i == Nreg/2-1) anglerefr = snell_with_incident_angle(angleinc, envi1, envi2);
             if (i == Nreg/2) anglerefr = src_to_dtct_angle(v[Nreg/2], v[Nreg-1], Nreg/2);
             if (i+1 < Nreg-1) {
@@ -150,9 +175,9 @@ public class ApartatA {
                 if (v[0] < v[Nreg-1]) v[i+1] = v[i] + newvalue;
                 else v[i+1] = v[i] - newvalue;
             }
+            chart.updateXYSeries("raig llum", x, v, null);
+            sw.repaintChart();
         }
-        print_chart(v, Nreg);
-        //print_board(v, Nreg);
         return v;
     }
 
@@ -213,9 +238,9 @@ public class ApartatA {
         double env1 = 1.0;
         double env2 = 1.0;
         if (environ.equals("y")) {
-            System.out.println("Please choose the first environment (Air: type '1'; Glass: type '1,5'; Water: type '1,33')");
+            System.out.println("Please choose the first environment (Air: type '1'; Glass: type '1.5'; Water: type '1.33')");
             env1 = reader.nextDouble();
-            System.out.println("Please choose the second environment (Air: type '1'; Glass: type '1,5'; Water: type '1,33')");
+            System.out.println("Please choose the second environment (Air: type '1'; Glass: type '1.5'; Water: type '1.33')");
             env2 = reader.nextDouble();
             v = recalculate_path(v, Nreg, env1, env2);
         }
@@ -226,21 +251,23 @@ public class ApartatA {
                 x[i] = (double)i;
                 ++i;
             }
-            XYChart chart = new XYChartBuilder().width(1600).height(1000).xAxisTitle("Regió").yAxisTitle("Posició de penetració").title("Comportament llum a través de N regions").build();
-            XYStyler styler = chart.getStyler();
             styler.setXAxisMax((double)Nreg-1);
             styler.setYAxisMax((double)Nreg);
             styler.setYAxisMin(0.0);
             chart.addSeries("raig llum", x, v);
-            final SwingWrapper<XYChart> sw;
+            i = 0;
+            while (i < Nreg) {
+                XYSeries series = chart.addSeries("Regió " + Integer.toString(i), new double[]{i, i}, new double[]{0,Nreg});
+                series.setLineColor(XChartSeriesColors.RED);
+                i++;
+            }
             sw = new SwingWrapper<>(chart);
             sw.displayChart();
             while (!try_random_y(v, Nreg)){
-                Thread.sleep(10);
+                Thread.sleep(2);
                 chart.updateXYSeries("raig llum", x, v, null);
                 sw.repaintChart();
-            };
-            //prettyize(v, Nreg);
+            }
         }
 
     }
