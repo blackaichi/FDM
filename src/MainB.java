@@ -24,7 +24,7 @@ class MainB {
         if (nreg > 50 || nreg < 20) throw new Exception("input error number of regions");
         double angle;
         System.out.print("Set initial angle (sexagesimal from 0 to 90): ");
-        angle = reader.nextDouble();
+        double angleI = reader.nextDouble();
         System.out.print("Set alpha(Natural Number): ");
         alpha = reader.nextInt();
         System.out.print("Selecciona el mode (0,1): ");
@@ -34,16 +34,16 @@ class MainB {
             pointsxU = reader.nextInt();
         }
         reader.close();
-        if (angle > 90 || angle < 0) throw new Exception("input error angle");
+        if (angleI > 90 || angleI < 0) throw new Exception("input error angle");
 
         posY = nreg/2;
         posX = 0;
         double indexAire = 1;
-        angle = snell(indexAire, angle, indexFibra);
+        angle = snell(indexAire, angleI, indexFibra);
         angleF = 90-angle;
         //System.out.println(angleF);
 
-        double[][] initdata = new double[][] {{-2, 0, Math.tan(Math.PI * angleF / 180)}, {posY-2*Math.tan(angle), posY, posY+1}};
+        double[][] initdata = new double[][] {{-2, 0, Math.tan(Math.PI * angleF / 180)}, {posY-(2*Math.tan(angleI*Math.PI/180)), posY, posY+1}};
         XYChart chart2 = new XYChartBuilder().width(1300).height(600).xAxisTitle("length").yAxisTitle("Regió").title("Comportament raig llum FO GRIN").build();
         // Show it
         XYStyler styler = chart2.getStyler();

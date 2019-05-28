@@ -1,0 +1,10 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="FDM:jar">
+    <output-path>$PROJECT_DIR$/JARS</output-path>
+    <root id="archive" name="FDM.jar">
+      <element id="module-output" name="FDM" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/src/xchart-3.5.4/xchart-3.5.4.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/src/xchart-3.5.4/xchart-demo-3.5.4.jar" path-in-jar="/" />
+    </root>
+  </artifact>
+</component>
